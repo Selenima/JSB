@@ -23,4 +23,4 @@ RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 # Команда для запуска бота
-CMD ["python3", "bot/main.py"]
+CMD ["python3", "app/main.py"]

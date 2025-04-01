@@ -35,9 +35,12 @@
 import random
 import string
 from utils.smtp_client import send_email
+from utils.database import get_db
 from repositories.redis_repository import RedisRepository
+from repositories.user_repository import UserRepository
 
-class AuthService:
+
+class AuthService(UserRepository):
 
     def __init__(self, redis_rep: RedisRepository, smtp_sender: str):
         self.redis_rep = redis_rep
@@ -67,8 +70,18 @@ class AuthService:
         Код действует 5 минут. Никому его не сообщайте.'''
 
         await send_email(self.smtp_sender, email, subject, message)
-        await self.redis_rep.set_opt(tg_user_id, otp_code)
+        await self.redis_rep.set_otp(tg_user_id, otp_code)
 
         return {"message": "Код отправлен."} ##
 
+    async def add_user(self, email: str, tg_user_id: int):
+        """
+        Добавляет минимальную строку в таблицу users
+        """
+        async with get_db() as session:
+            try:
+                await self.create_user(session, email, tg_user_id)
+                return True
+            except Exception as e:
+                return False
 

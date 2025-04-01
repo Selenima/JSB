@@ -1,25 +1,3 @@
-# import aioredis
-# import hashlib
-# import random
-# import string
-#
-# class RedisRepository:
-#
-#     def __init__(self, redis_url: str):
-#
-#         self.redis = aioredis.from_url(redis_url, decode_responses=True)
-#
-#     async def generate_session_key(self, tg_user_id: int, otp_code: str, expire_seconds: int = 300):
-#         """
-#         Generate a session key for a Telegram user
-#         :param tg_user_id: User ID
-#         :param otp_code: confirmation code
-#         :param expire_seconds: TTL for confirmation code
-#         :return:
-#         """
-#
-#
-
 import redis.asyncio as aioredis
 import hashlib
 import json
@@ -55,8 +33,8 @@ class RedisRepository:
         :return: Результат проверки совпадения кода.
         """
 
-        session_key = self.hash_256(tg_user_id)
-        stored_otp_code = await self.redis.get(session_key)
+        user_key = self.hash_256(tg_user_id)
+        stored_otp_code = await self.redis.get(user_key)
 
         if not stored_otp_code:
             return False
@@ -64,7 +42,7 @@ class RedisRepository:
         user_code_hash = self.hash_256(otp_code)
 
         if user_code_hash == stored_otp_code:
-            await self.redis.delete(session_key)
+            await self.redis.delete(user_key)
             return True
 
         return False

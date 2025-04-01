@@ -5,6 +5,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram import F
 
+
 from services.auth_service import AuthService
 
 router = Router()
@@ -12,9 +13,11 @@ router = Router()
 class AuthStates(StatesGroup):
     email = State()
     code_ = State()
+    success = State()
 
 @router.message(Command('start'))
-async def start(message: types.Message, state: FSMContext):
+async def start(message: types.Message, state: FSMContext, auth_service: AuthService = F.auth_service):
+    await auth_service.get_active_session()
     await message.answer("*Getting mail*")
     await state.set_state(AuthStates.email)
 
@@ -34,7 +37,7 @@ async def process_code(message: types.Message, state: FSMContext, auth_service: 
     code = message.text
     # validation code func
     user_data = await state.get_data()
-    if await auth_service.verify_code(code, user_data):
+    if await auth_service.verify_code_http(code, user_data):
         await message.answer("*Verifying*")
         await state.clear()
     else:

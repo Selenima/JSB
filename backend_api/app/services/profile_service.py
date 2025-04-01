@@ -1,5 +1,6 @@
 from models.user import User
 from repositories.user_repository import UserRepository
+from utils.database import get_db
 
 class ProfileService:
     def __init__(self, user_repository: UserRepository):
@@ -9,9 +10,11 @@ class ProfileService:
         """
         Получение данных профиля.
         :param user_id: ID пользователя.
-        :return: Данные профиля.
+        :return: Данные профиля или None.
         """
-        return await self.user_repository.get_user(user_id)
+        async with get_db() as session:
+            res = await self.user_repository.get_user_by_tg_id(session, user_id)
+            return res if res else None
 
     async def update_profile(self, user_id: int, profile_data: dict):
         """

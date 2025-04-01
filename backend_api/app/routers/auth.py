@@ -11,7 +11,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 class SmtpAgent:
 
-    sender = 'bot@mrtexpert.ru'
+    sender = 'app@mrtexpert.ru'
 
 class EmailRequest(BaseModel):
     email: EmailStr
@@ -39,10 +39,15 @@ async def verify_code(request: OTPRequest, redis_rep: RedisRepository = Depends(
     auth_service = AuthService(redis_rep, smtp_sender=SmtpAgent.sender)
     session_service = SessionService(redis_rep)
 
-    is_valid = await auth_service.redis_rep.verify_opt(request.tg_user_id, request.code_)
+    is_valid = await auth_service.redis_rep.verify_otp(request.tg_user_id, request.code_)
 
     if not is_valid:
         return HTTPException(status_code=400, detail='Invalid code')
+
+
+    exec_stat = await auth_service.add_user(request.email, request.tg_user_id)
+    if not exec_stat:
+        return HTTPException(status_code=401, detail='Cannot add user')
 
     session_key = await session_service.create_session(request.tg_user_id, request.email) ####
     return {'session_key': session_key}

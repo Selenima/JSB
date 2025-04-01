@@ -12,4 +12,4 @@ async def root():
     return {'message': 'API H'}
 
 if __name__ == '__main__':
-    uvicorn.run("bot.main:app", host='0.0.0.0', port=8000, reload=True)
+    uvicorn.run("appapp.main:app", host='0.0.0.0', port=8000, reload=True)
