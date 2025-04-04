@@ -1,11 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
-from routers import auth, tickets
+from routers import include_routers
 
 app = FastAPI(title='JSB API', version='0.1')
 
-app.include_router(auth.router)
-app.include_router(tickets.router)
+include_routers(app)
 
 @app.get('/')
 async def root():
