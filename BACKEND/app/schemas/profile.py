@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class Profile(BaseModel):
-    full_name: str
+    fullname: str
     company: str
     position: str
     contacts: list
@@ -9,4 +9,4 @@ class Profile(BaseModel):
 class User(BaseModel):
     tg_user_id: int
     email: str
-    profile: Profile
+    profile: Profile | None = None

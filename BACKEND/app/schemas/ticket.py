@@ -8,6 +8,7 @@ class TicketCreate(BaseModel):
 
 class TicketResponse(BaseModel):
     id: int
+    jira_id: str | None = None
     title: str
     description: str
     status: str
