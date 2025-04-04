@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 
 from services.auth_service import AuthService
@@ -51,5 +51,3 @@ async def verify_code(request: OTPRequest, redis_rep: RedisRepository = Depends(
 
     session_key = await session_service.create_session(request.tg_user_id, request.email) ####
     return {'session_key': session_key}
-
-
