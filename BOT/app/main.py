@@ -9,7 +9,9 @@ from app.handlers import register_handlers
 from repositories.user_repository import UserRepository
 from services.auth_service import AuthService
 
-TOKEN = '7248079977:AAELD3c0zaS6AKO0xgdz-qvbYw7g2xXVs-I'
+from cfg import Config
+
+TOKEN = Config.token
 
 default = DefaultBotProperties(parse_mode=ParseMode.HTML)
 bot = Bot(token=TOKEN, default=default)

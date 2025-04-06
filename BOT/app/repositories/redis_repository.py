@@ -3,6 +3,9 @@ import hashlib
 import json
 import time
 
+from models.ticket import Ticket
+
+
 class RedisRepository:
 
     def __init__(self, redis_url: str):
@@ -56,3 +59,16 @@ class RedisRepository:
         session_key = self.hash_256(f'{tg_user_id}{email}')
         session_data = await self.redis.get(session_key)
         return json.loads(session_data) if session_data else None
+
+    async def add_ticket(self, tg_user_id: int, ticket: Ticket):
+        """
+
+        :param tg_user_id:
+        :param ticket:
+        :return:
+        """
+
+        user_key = self.hash_256(tg_user_id)
+
+        await self.redis.set(user_key, ticket.model_dump(), ex=2_592_000)
+

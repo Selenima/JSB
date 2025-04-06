@@ -10,13 +10,17 @@ from repositories.user_repository import UserRepository
 
 router = Router()
 
+
+
 class CreateTicketStates(StatesGroup):
     title = State()
     description = State()
     attachments = State()
 
+
 @router.message(Command('create_ticket'))
 async def start_create_ticket(message: types.Message, state: FSMContext):
+
     await message.answer("Введите тему заявки:")
     await state.set_state(CreateTicketStates.title)
 

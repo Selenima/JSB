@@ -73,7 +73,7 @@ class AuthService:
                 resp = await req.json()
                 user = User(**resp) #!!!!
 
-            session = await self.redis_rep.get_session(user.tg_user_id, user.email)
+                session = await self.redis_rep.get_session(user.tg_user_id, user.email)
 
-            return session
-
+                return session if session else user
+            return None
