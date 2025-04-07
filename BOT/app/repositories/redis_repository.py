@@ -71,4 +71,3 @@ class RedisRepository:
         user_key = self.hash_256(tg_user_id)
 
         await self.redis.set(user_key, ticket.model_dump(), ex=2_592_000)
-

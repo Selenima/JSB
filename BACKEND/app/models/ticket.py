@@ -7,7 +7,7 @@ class Ticket(Base):
     __tablename__ = 'tickets'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id')) # !
+    tg_user_id = Column(Integer, ForeignKey('tg_user_id.id')) # !
     issue_id = Column(String, nullable=False)
     issue_type = Column(String, nullable=False)
     title = Column(String, nullable=False)

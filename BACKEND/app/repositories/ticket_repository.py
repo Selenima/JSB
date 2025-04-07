@@ -8,7 +8,7 @@ from schemas.ticket import TicketCreate
 
 class TicketRepository:
     @staticmethod
-    async def create_ticket(user: User, ticket_data: TicketCreate, session: AsyncSession) -> Ticket:
+    async def create_ticket(ticket_data: TicketCreate, session: AsyncSession) -> Ticket:
         """
 
         :param user:
@@ -16,7 +16,7 @@ class TicketRepository:
         :param db:
         :return:
         """
-        new_ticket = Ticket(user_id=user.id, **ticket_data.model_dump())
+        new_ticket = Ticket(tg_user_id=ticket_data.tg_user_id, title=ticket_data.title, description=ticket_data.description)
         session.add(new_ticket)
         await session.commit()
         await session.refresh(new_ticket)

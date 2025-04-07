@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 class TicketCreate(BaseModel):
+    tg_user_id: int
     title: str
     description: str
 
@@ -13,7 +14,7 @@ class TicketResponse(BaseModel):
     title: str
     description: str
     status: str
-    created_at: datetime
+
 
     class Config: #!
         from_attributes = True

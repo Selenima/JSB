@@ -7,14 +7,14 @@ class TicketService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_ticket(self, user: User, ticket: TicketCreate) -> TicketResponse:
+    async def create_ticket(self, ticket: TicketCreate) -> TicketResponse:
         """
 
         :param user:
         :param ticket:
         :return:
         """
-        ticket = await TicketRepository.create_ticket(user, ticket, self.db)
+        ticket = await TicketRepository.create_ticket(ticket, self.db)
         return TicketResponse.model_validate(ticket)
 
     async def get_ticket(self, ticket_id: int) -> TicketResponse:

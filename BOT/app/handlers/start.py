@@ -82,6 +82,6 @@ async def blacklist(message: types.Message, state: FSMContext):
             return
     await state.clear()
 
-def register_start_handlers(dp: Dispatcher, auth_service): # ? auth_service
+def register_start_handlers(dp: Dispatcher, auth_service):
     dp.include_router(router)
     dp['auth_service'] = auth_service

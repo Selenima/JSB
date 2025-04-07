@@ -9,7 +9,7 @@ router = APIRouter(prefix="/tickets", tags=["tickets"])
 
 
 @router.post("/", response_model=TicketResponse)
-async def create_ticket(ticket_data: TicketCreate, user: User = Depends(), db: AsyncSession = Depends(get_db)):
+async def create_ticket(ticket_data: TicketCreate, db: AsyncSession = Depends(get_db)):
     """
     Создание новой заявки.
     :param ticket_data:
@@ -18,7 +18,7 @@ async def create_ticket(ticket_data: TicketCreate, user: User = Depends(), db: A
     :return:
     """
     service = TicketService(db)
-    return await service.create_ticket(user, ticket_data)
+    return await service.create_ticket(ticket_data)
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
 async def get_ticket(ticket_id: int, db: AsyncSession = Depends(get_db)):
