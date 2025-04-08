@@ -2,13 +2,13 @@ from typing import Optional
 from pydantic import BaseModel, field_validator
 
 
-class IssueType(BaseModel):
+class IssueType(BaseModel): #WT
 
     __issuetypes__ = {
         'service': 10201
     }
 
-class ServiceType(BaseModel):
+class ServiceType(BaseModel): #WT
     __servicetypes__ = {
         'Не указан' : 0
     }
@@ -53,13 +53,15 @@ class StatusType:
         self.message = self.messages[self.value]
 
 class Ticket(BaseModel):
-    ticket_id: str = None
-    issue_type: IssueType | str = IssueType.service
+
     tg_user_id: int
+    jsd_id: str = None
+    issue_type: IssueType | str = IssueType.service
     title: str = None
     description: str = None
     status: StatusType
     service: str | int = None
+    comments: dict = dict
 
     @field_validator('status', mode='before')
     def v_status(cls, value):
