@@ -3,6 +3,9 @@ import hashlib
 import json
 import time
 
+from schemas.ticket import TicketResponse
+
+
 class RedisRepository:
 
     def __init__(self, redis_url: str):
@@ -56,7 +59,7 @@ class RedisRepository:
         :return: Session key
         """
         session_key = self.hash_256(f'{tg_user_id}{email}')
-        session_data = json.dumps({"email": email, "expires_at": time.time() + expire_seconds}) # WT
+        session_data = json.dumps({"email": email, "expires_at": time.time() + expire_seconds, "data": {}}) # WT
         await self.redis.setex(session_key, expire_seconds, session_data)
         return session_key
 
@@ -71,3 +74,85 @@ class RedisRepository:
         session_data = await self.redis.get(session_key)
 
         return json.loads(session_data) if session_data else None
+
+    async def add_ticket(self, tg_user_id: int, email: str, ticket: TicketResponse):
+        """
+        Добавляет тикет в сессию пользователя.
+        :param tg_user_id:
+        :param email:
+        :param ticket:
+        :return: Результат операции
+        """
+
+        session_key = self.hash_256(f'{tg_user_id}{email}')
+
+        session_data = await self.redis.get(session_key)
+
+        if not session_data:
+            return False
+
+
+        ticket_key = self.hash_256(ticket.jsd_id)
+        data = json.loads(session_data)
+
+        data['data'][ticket_key] = ticket.model_dump()
+
+        ttl = await self.redis.ttl(session_key)
+
+        if ttl > 0:
+            await self.redis.setex(session_key, ttl, json.dumps(data))
+
+        return True
+
+    async def get_ticket(self, tg_user_id: int, email: str, ticket_id: int):
+        """
+        Получает тикет из сессии пользователя.
+        :param tg_user_id:
+        :param email:
+        :param ticket_id:
+        :return:
+        """
+
+        session_key = self.hash_256(f'{tg_user_id}{email}')
+
+        session_data = await self.redis.get(session_key)
+        if not session_data:
+            return None
+
+        data = json.loads(session_data)
+        ticket_key = self.hash_256(ticket_id)
+
+        return data.get(ticket_key)
+
+    async def remove_ticket(self, tg_user_id: int, email: str, ticket_id: int):
+        """
+        Удаляет тикет из сессии пользователя.
+        Будет необходимо для удаления при переводе в статус Done
+        :param tg_user_id:
+        :param email:
+        :param ticket_id:
+        :return:
+        """
+
+        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_data = await self.redis.get(session_key)
+
+        if not session_data:
+            return False
+
+        data = json.loads(session_data)
+        ticket_key = self.hash_256(ticket_id)
+
+        if ticket_key not in data['data']: return False
+
+
+        del data['data'][ticket_key]
+
+        ttl = await self.redis.ttl(session_key)
+
+        if ttl > 0:
+            await self.redis.setex(session_key, ttl, json.dumps(data))
+
+        return True
+
+
