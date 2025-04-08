@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional
 
@@ -51,9 +51,12 @@ class TicketResponse(BaseModel):
     title: str = None
     description: str = None
     status: StatusType
-    service: str | int = None
+    service: str | int = 0
     comments: dict = dict
 
+    @field_validator('status', mode='before')
+    def v_status(cls, value):
+        return value if isinstance(value, StatusType) else StatusType(value)
 
     class Config: #!
         from_attributes = True
