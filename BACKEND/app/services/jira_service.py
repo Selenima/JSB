@@ -11,10 +11,9 @@ from utils.jira_issue import JiraIssue
 # jira = JIRA(options=jira_options, basic_auth=(cfg.jira_user, cfg.jira_api))
 
 class JiraService:
-    def __init__(self, jira_client: Jira, project_key: str = "SD", issue_type: str = "Task"):
+    def __init__(self, jira_client: Jira, project_key: str = "SD"):
         self.jira = jira_client
         self.project_key = project_key
-        self.issue_type = issue_type
 
     async def create_issue(self, ticket: TicketCreate):
         fields = self.create_data(ticket)
@@ -33,7 +32,7 @@ class JiraService:
     def create_data(self, ticket: TicketCreate) -> dict:
         data = dict(
             summary=ticket.title,
-            project=dict(key='SD'),
+            project=dict(key=self.project_key),
             issuetype=dict(id=ticket.issue_type.service),
             description=ticket.description
         )

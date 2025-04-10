@@ -32,11 +32,11 @@ class TicketService:
 
     async def get_ticket(self, ticket_id: int) -> TicketResponse:
         """
-
+        Получение запроса из базы.
         :param ticket_id:
         :return:
         """
-
+        # Будет работать вебхук, который будет записывать данные тикета в базу, этот метод будет получать их из базы
         ticket = await TicketRepository.get_ticket(ticket_id, self.db)
         if not ticket:
             raise ValueError("Ticket not found")
