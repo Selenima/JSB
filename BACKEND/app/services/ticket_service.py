@@ -22,11 +22,13 @@ class TicketService:
         """
         # Дико перегруженная функция нужно менять.
         # Обязательно проработать процесс логирования и фидбека по ошибкам
-
-        ticket = await self.jira_service.create_issue(ticket)
-        await TicketRepository.create_ticket(ticket, self.db)
-        user = await UserRepository.get_user(self.db, ticket.tg_user_id)
-        await self.redis_repository.add_ticket(tg_user_id=user.tg_user_id, email=user.email, ticket=ticket)
+        try:
+            ticket = await self.jira_service.create_issue(ticket)
+            await TicketRepository.create_ticket(ticket, self.db)
+            user = await UserRepository.get_user(self.db, ticket.tg_user_id)
+            await self.redis_repository.add_ticket(tg_user_id=user.tg_user_id, email=user.email, ticket=ticket)
+        except:
+            return None
 
         return ticket
 

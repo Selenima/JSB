@@ -64,3 +64,8 @@ class TicketResponse(BaseModel):
 
     class Config: #!
         from_attributes = True
+
+
+class GetTicketResponse(BaseModel):
+    status: str
+    data: TicketResponse

@@ -21,11 +21,13 @@ class RedisRepository:
         :param tg_user_id: H
         :param otp_code: H
         :param expire_seconds: TTL
+        :return: OTP hash
         """
 
         session_key = self.hash_256(tg_user_id)
         otp_code = self.hash_256(otp_code)
         await self.redis.setex(session_key, expire_seconds, otp_code)
+        return otp_code
 
     async def verify_otp(self, tg_user_id: int, otp_code: str) -> bool:
         """

@@ -17,3 +17,8 @@ class TicketServiceSuperset:
     jira_service = JiraService(jira)
 
     redis_repository = RedisRepository(f'{cfg.redis_base}:{cfg.redis_port}')
+
+class AuthServiceSuperset:
+
+    redis_repository = RedisRepository(f'{cfg.redis_base}:{cfg.redis_port}')
+

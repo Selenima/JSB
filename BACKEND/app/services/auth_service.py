@@ -42,9 +42,8 @@ from repositories.user_repository import UserRepository
 
 class AuthService(UserRepository):
 
-    def __init__(self, redis_rep: RedisRepository, smtp_sender: str): #!
+    def __init__(self, redis_rep: RedisRepository): #!
         self.redis_rep = redis_rep
-        self.smtp_sender = smtp_sender
 
     def generate_otp(self, length: int = 6) -> str:
         """
@@ -66,13 +65,18 @@ class AuthService(UserRepository):
         subject = "Аутентификация в чат-боте"
         message = f'''Здравствуйте!
         С помощью вашего почтового ящика была совершена попытка авторизации в чат-боте ServiceDesk.
-        Ваш код подтверждения {otp_code}.
+        Ваш код подтверждения {otp_code}
         Код действует 5 минут. Никому его не сообщайте.'''
 
-        await send_email(self.smtp_sender, email, subject, message) #!
-        await self.redis_rep.set_otp(tg_user_id, otp_code)
+        otp = None
 
-        return {"message": "Код отправлен."} ##
+        try:
+            otp = await self.redis_rep.set_otp(tg_user_id, otp_code)
+            await send_email(email, subject, message)
+        except Exception as e:
+            pass #LOG
+        finally:
+            return otp if otp else None
 
     async def add_user(self, email: str, tg_user_id: int):
         """

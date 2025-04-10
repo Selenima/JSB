@@ -23,7 +23,7 @@ class JiraService:
         try:
             issue = self.jira.create_issue(fields=fields)
         except Exception as e:
-            return False #log
+            return None #log
         else:
             issue = JiraIssue.from_dict(issue)
             ticket = TicketResponse.model_validate(issue.work_data(tg_user_id))
