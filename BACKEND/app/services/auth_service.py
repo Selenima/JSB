@@ -42,7 +42,7 @@ from repositories.user_repository import UserRepository
 
 class AuthService(UserRepository):
 
-    def __init__(self, redis_rep: RedisRepository, smtp_sender: str):
+    def __init__(self, redis_rep: RedisRepository, smtp_sender: str): #!
         self.redis_rep = redis_rep
         self.smtp_sender = smtp_sender
 
@@ -69,7 +69,7 @@ class AuthService(UserRepository):
         Ваш код подтверждения {otp_code}.
         Код действует 5 минут. Никому его не сообщайте.'''
 
-        await send_email(self.smtp_sender, email, subject, message)
+        await send_email(self.smtp_sender, email, subject, message) #!
         await self.redis_rep.set_otp(tg_user_id, otp_code)
 
         return {"message": "Код отправлен."} ##
