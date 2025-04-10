@@ -1,5 +1,3 @@
-import smtplib
-
 import aiosmtplib
 from email.message import EmailMessage
 from cfg import cfg
