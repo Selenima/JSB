@@ -3,7 +3,6 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from models.ticket import Ticket
-from models.user import User
 from schemas.ticket import TicketResponse
 
 class TicketRepository:
