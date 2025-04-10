@@ -2,9 +2,9 @@ import uvicorn
 from fastapi import FastAPI
 from routers import include_routers
 
-app = FastAPI(title='JSB API', version='0.1')
+app = FastAPI(title='JSB API', version='1.0')
 
-include_routers(app)
+include_routers(app, prefix='/v1/')
 
 @app.get('/')
 async def root():
