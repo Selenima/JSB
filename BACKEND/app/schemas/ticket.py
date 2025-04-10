@@ -41,8 +41,12 @@ class StatusType:
 
 class TicketCreate(BaseModel):
     tg_user_id: int
+    issue_type: IssueType | str = IssueType.service
     title: str
     description: str
+    service: str | int = 0
+
+
 
 class TicketResponse(BaseModel):
     tg_user_id: int
