@@ -7,7 +7,8 @@ from aiogram import F
 
 from models.user import User
 from services.auth_service import AuthService
-from utils.blacklist import Blacklist
+from utils.blacklist import add_blacklist
+from utils.auth_cache import starter, del_starter
 
 router = Router()
 
@@ -15,7 +16,6 @@ class AuthStates(StatesGroup):
     email = State()
     code_ = State()
     success = State()
-    blocked = State()
 
 @router.message(Command('start'))
 async def start(message: types.Message, state: FSMContext, auth_service: AuthService = F.auth_service):
@@ -24,14 +24,14 @@ async def start(message: types.Message, state: FSMContext, auth_service: AuthSer
     if not count:
         await state.update_data(count=5)
     elif count < 1:
-        await Blacklist.blacklist(message.from_user.id)
-        await state.set_state(AuthStates.blocked)
+        await add_blacklist(message.from_user.id)
         return
 
     session = await auth_service.get_active_session(message.from_user.id)
 
     if not session:
         await message.answer("Напишите адрес вашей электронной почты.")
+        starter(message.from_user.id)
         await state.set_state(AuthStates.email)
     elif session and isinstance(session, User):
         await state.update_data(email=session.email)
@@ -66,21 +66,14 @@ async def process_code(message: types.Message, state: FSMContext, auth_service: 
     # validation code func
 
     if await auth_service.verify_code_http(user_id, code, data.get("email")):
-        await message.answer("")
-        await state.set_state(AuthStates.success)
+        await message.answer("Вы можете создать заявку с помощью команды /create_ticket")
+        await state.clear()
+        del_starter(message.from_user.id)
     else:
         count = data.get("count")
         await message.answer(f"Неверный код подтверждения. (Попыток осталось: {count - 1})")
         await state.update_data(count=count-1)
         await state.set_state(AuthStates.email)
-
-@router.message(AuthStates.blocked)
-async def blacklist(message: types.Message, state: FSMContext):
-
-    if await Blacklist.check_user(message.from_user.id):
-            await message.answer("Вы заброкированы как подозрительный пользователь. Обратитесь к администратору проекта.")
-            return
-    await state.clear()
 
 def register_start_handlers(dp: Dispatcher, auth_service):
     dp.include_router(router)

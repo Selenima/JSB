@@ -1,22 +1,16 @@
-import aiofiles
+from cachetools import TTLCache
 
-class Blacklist:
+blacklist = TTLCache(maxsize=7000, ttl=600)
 
-    @staticmethod
-    async def gen():
-        async with aiofiles.open('blacklist.txt', mode='a+') as file:
-            yield file
+def add_blacklist(user_id: int):
+    blacklist[user_id] = True
 
-    @staticmethod
-    async def blacklist(user_id):
-        async with Blacklist.gen() as file:
-            bl = await file.read().splitlines()
-            user_id = str(user_id)
-            if user_id not in bl:
-                await file.write(f'{user_id}\n')
+def check_blacklist(user_id: int):
+    return user_id in blacklist
 
-    @staticmethod
-    async def check_user(user_id):
-        async with Blacklist.gen() as file:
-            bl = await file.read().splitlines()
-            return user_id in bl
+def remove_blacklist(user_id: int):
+    try:
+        blacklist.pop(user_id)
+    except KeyError:
+        pass
+

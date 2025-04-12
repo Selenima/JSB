@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, overload, Dict, Union, Any
 from pydantic import BaseModel, field_validator
 
 
@@ -53,16 +53,15 @@ class StatusType:
         self.message = self.messages[self.value]
 
 class Ticket(BaseModel):
-
     tg_user_id: int
-    jsd_id: str = None
-    issue_type: IssueType | str = IssueType.service
-    title: str = None
-    description: str = None
-    status: StatusType
-    service: str | int = None
-    comments: dict = dict
+    jsd_id: str
+    issue_type: str
+    title: str
+    description: str
+    status: str
+    service: Union[int, str]
+    comments: Dict[str, Any] = dict
 
-    @field_validator('status', mode='before')
-    def v_status(cls, value):
-        return value if isinstance(value, StatusType) else StatusType(value)
+    # @field_validator('status', mode='before')
+    # def v_status(cls, value):
+    #     return value if isinstance(value, StatusType) else StatusType(value)

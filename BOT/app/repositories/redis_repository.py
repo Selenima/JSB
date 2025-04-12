@@ -14,15 +14,16 @@ class RedisRepository:
     def hash_256(self, value):
         return hashlib.sha256(str(value).encode()).hexdigest()
 
-    async def verify_otp(self, tg_user_id: int, otp_code: str):
+    async def verify_otp(self, tg_user_id: int, email: str, otp_code: str):
         """
         Проверяет код и удаляет его при успешном вводе.
         :param tg_user_id:
+        :param email:
         :param otp_code:
         :return: Результат проверки совпадения кода.
         """
 
-        user_key = self.hash_256(tg_user_id)
+        user_key = self.hash_256(f'{tg_user_id}{email}')
         stored_otp_code = await self.redis.get(user_key)
 
         if not stored_otp_code:
@@ -44,19 +45,19 @@ class RedisRepository:
         :param expire_seconds: TTL
         :return: Session key
         """
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
         session_data = json.dumps({"email": email, "expires_at": time.time() + expire_seconds})  # WT
         await self.redis.setex(session_key, expire_seconds, session_data)
         return session_key
 
-    async def get_session(self, tg_user_id: int, email: str):
+    async def get_session(self, tg_user_id: int):
         """
         Получает данные пользователя Redis.
         :param tg_user_id:
         :param email:
         :return: Датасет или None
         """
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
         session_data = await self.redis.get(session_key)
         return json.loads(session_data) if session_data else None
 
