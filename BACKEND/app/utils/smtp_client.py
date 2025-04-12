@@ -33,3 +33,6 @@ async def send_email(recipient_email: str, subject: str, body: str):
     except Exception as e:
         print(str(e))
         return {"status": "failed", "message": str(e)}
+
+# import asyncio
+# asyncio.run(send_email('AGrigorov@mrtexpert.ru', 'q', 'q'))

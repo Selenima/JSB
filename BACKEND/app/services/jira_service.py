@@ -19,7 +19,7 @@ class JiraService:
         fields = self.create_data(ticket)
         return await asyncio.to_thread(self._create_issue_sync, fields, ticket.tg_user_id)
 
-    def _create_issue_sync(self, fields: dict, tg_user_id: int) -> TicketResponse | False:
+    def _create_issue_sync(self, fields: dict, tg_user_id: int) -> Optional[TicketResponse]:
         try:
             issue = self.jira.create_issue(fields=fields)
         except Exception as e:

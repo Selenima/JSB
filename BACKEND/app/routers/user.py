@@ -7,7 +7,7 @@ from repositories.user_repository import UserRepository
 from schemas.profile import User, Profile
 from utils.database import get_db
 
-router = APIRouter(prefix='/user', tags=['user'])
+router = APIRouter(prefix='/users', tags=['users'])
 
 class GetUserProfileRequest(BaseModel):
     tg_user_id: int

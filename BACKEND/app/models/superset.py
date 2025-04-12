@@ -1,4 +1,3 @@
-#
 
 from atlassian import Jira
 from services.jira_service import JiraService
@@ -16,9 +15,9 @@ class TicketServiceSuperset:
 
     jira_service = JiraService(jira)
 
-    redis_repository = RedisRepository(f'{cfg.redis_base}:{cfg.redis_port}')
+    redis_repository = RedisRepository(cfg.get_redis_url())
 
 class AuthServiceSuperset:
 
-    redis_repository = RedisRepository(f'{cfg.redis_base}:{cfg.redis_port}')
+    redis_repository = RedisRepository(cfg.get_redis_url())
 

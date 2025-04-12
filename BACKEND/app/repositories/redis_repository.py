@@ -15,30 +15,32 @@ class RedisRepository:
     def hash_256(self, value):
         return hashlib.sha256(str(value).encode()).hexdigest()
 
-    async def set_otp(self, tg_user_id: int, otp_code: str, expire_seconds: int = 300):
+    async def set_otp(self, tg_user_id: int, email: str, otp_code: str, expire_seconds: int = 300):
         """
         Хеширует tg_user_id и otp_code, сохраняет в Redis на 5 минут
         :param tg_user_id: H
+        :param email: H
         :param otp_code: H
         :param expire_seconds: TTL
         :return: OTP hash
         """
 
-        session_key = self.hash_256(tg_user_id)
+        session_key = self.hash_256(f'{tg_user_id}{email}')
         otp_code = self.hash_256(otp_code)
         await self.redis.setex(session_key, expire_seconds, otp_code)
         return otp_code
 
-    async def verify_otp(self, tg_user_id: int, otp_code: str) -> bool:
+    async def verify_otp(self, tg_user_id: int, email: str, otp_code: str) -> bool:
         """
         ### Реплика функции, на данном этапе
         Проверяет код и удаляет его при успешном вводе.
         :param tg_user_id:
+        :param email:
         :param otp_code:
         :return: Результат проверки совпадения кода.
         """
 
-        user_key = self.hash_256(tg_user_id)
+        user_key = self.hash_256(f'{tg_user_id}{email}')
         stored_otp_code = await self.redis.get(user_key)
 
         if not stored_otp_code:
@@ -60,19 +62,19 @@ class RedisRepository:
         :param expire_seconds: TTL
         :return: Session key
         """
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
         session_data = json.dumps({"email": email, "expires_at": time.time() + expire_seconds, "data": {}}) # WT
         await self.redis.setex(session_key, expire_seconds, session_data)
         return session_key
 
-    async def get_session(self, tg_user_id: int, email: str):
+    async def get_session(self, tg_user_id: int):
         """
         Получает данные пользователя Redis.
         :param tg_user_id:
         :param email:
         :return: Session data.
         """
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
         session_data = await self.redis.get(session_key)
 
         return json.loads(session_data) if session_data else None
@@ -86,7 +88,7 @@ class RedisRepository:
         :return: Результат операции
         """
 
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
 
         session_data = await self.redis.get(session_key)
 
@@ -115,7 +117,7 @@ class RedisRepository:
         :return:
         """
 
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
 
         session_data = await self.redis.get(session_key)
         if not session_data:
@@ -136,7 +138,7 @@ class RedisRepository:
         :return:
         """
 
-        session_key = self.hash_256(f'{tg_user_id}{email}')
+        session_key = self.hash_256(f'{tg_user_id}')
         session_data = await self.redis.get(session_key)
 
         if not session_data:

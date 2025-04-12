@@ -4,7 +4,7 @@ from routers import include_routers
 
 app = FastAPI(title='JSB API', version='1.0')
 
-include_routers(app, prefix='/v1/')
+include_routers(app, prefix='/v1')
 
 @app.get('/')
 async def root():

@@ -3,9 +3,11 @@ import dataclasses
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 
+#from repositories import redis_repository
 from services.auth_service import AuthService
 from repositories.redis_repository import RedisRepository
 from schemas.auth_response import OTPData, EmailResponse
+from models.superset import AuthServiceSuperset
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -21,12 +23,12 @@ class OTPRequest(BaseModel):
 
 
 
-@router.post('/send-code', status_code=status.HTTP_200_OK)
-async def send_code(request: EmailRequest, redis_rep: RedisRepository = Depends()):
+@router.post('/send-code', status_code=status.HTTP_201_CREATED)
+async def send_code(request: EmailRequest, superset: AuthServiceSuperset = Depends(AuthServiceSuperset)):
     """
     Отправка кода подтверждения.
     """
-    service = AuthService(redis_rep)
+    service = AuthService(superset.redis_repository)
     code = await service.send_otp(str(request.email), request.tg_user_id)
 
     if not code:
@@ -54,4 +56,4 @@ async def verify_code(request: OTPRequest, redis_rep: RedisRepository = Depends(
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot add user')
 
     session_key = await redis_rep.create_session(request.tg_user_id, str(request.email)) ####
-    return {'status': 200, 'data': dict(session_key=session_key)}
+    return {'status': 'success', 'data': dict(session_key=session_key)}

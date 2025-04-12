@@ -13,6 +13,7 @@ class User(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     profile = relationship('Profile', back_populates="user", uselist=False)
+    ticket = None
 
 class Profile(Base):
     __tablename__ = 'profiles'

@@ -8,8 +8,4 @@ class OTPData(BaseModel):
 
 class EmailResponse(BaseModel):
     status: str
-    data: OTPData
-
-
-
-
+    data: OTPData # на данном этапе гипертрофированный ответ, но не хочу урезать возможно оправдается позже

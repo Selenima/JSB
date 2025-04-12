@@ -16,6 +16,7 @@ class UserRepository:
     @staticmethod
     async def get_user(session: AsyncSession, tg_user_id: int) -> User | None: # _by_tg_id
         """ Получение пользователя по Telegram ID. """
+
         query = select(User).where(User.tg_user_id == tg_user_id)
         result = await session.execute(query)
         return result.scalars().first()
