@@ -3,60 +3,78 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 from models.user import User, Profile
 from schemas.profile import User as UserSchema, Profile as ProfileSchema
+from utils import set_logger_filename
+from typing import Optional
+from schemas import exceptions
 
 class UserRepository:
 
-    # @staticmethod
-    # async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
-    #     """ Получение пользователя по email. """
-    #     query = select(User).where(User.email == email)
-    #     result = await session.execute(query)
-    #     return result.scalars().first()
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    @staticmethod
-    async def get_user(session: AsyncSession, tg_user_id: int) -> User | None: # _by_tg_id
+    async def get_user(self, tg_user_id: int) -> User | None: # _by_tg_id
         """ Получение пользователя по Telegram ID. """
 
-        query = select(User).where(User.tg_user_id == tg_user_id)
-        result = await session.execute(query)
+        query = (
+            select(User)
+            .where(User.tg_user_id == tg_user_id)
+            .options(joinedload(User.profile))
+        )
+
+        result = await self.session.execute(query)
         return result.scalars().first()
 
-    @staticmethod
-    async def create_user(session: AsyncSession, email: str, tg_user_id: int) -> User:
+    async def create_user(self, email: str, tg_user_id: int) -> Optional[User]:
         """ Создание нового пользователя. """
-        new_user = User(email=email, tg_user_id=tg_user_id)
-        session.add(new_user)
-        await session.commit()
-        await session.refresh(new_user)
-        return new_user
 
-    @staticmethod
-    async def update_user(session: AsyncSession, user: UserSchema) -> User | None:
+        logger = set_logger_filename('USER_CREATING')
+        existing_user = await self.get_user( tg_user_id)
+        if existing_user:
+            logger.info('User already exists')
+            return existing_user
+
+        #email_check
+
+        new_user = User(email=email, tg_user_id=tg_user_id)
+        try:
+            self.session.add(new_user)
+            await self.session.flush()
+            await self.session.refresh(new_user)
+            logger.debug(f'User created: {new_user.id}')
+            return new_user
+        except Exception as e:
+            logger.error(f'User creating: {e}')
+            await self.session.rollback()
+            if "unique constraint" in str(e).lower():
+                raise exceptions.DuplicateUserError('User already exists')
+            raise
+
+    async def update_user(self, user_data: UserSchema) -> User | None:
         """Функция обновления профиля пользоввателя."""
-        # 2 замечания:
-        # 1 - форсированно меняет полностью весь профиль пользователя.
-        # 2 - не поддерживает обновление имперических данных (данных пользователя, а не профиля)
+
+        logger = set_logger_filename('USER_UPDATING')
 
         try:
-            query = select(User).where(User.tg_user_id == user.tg_user_id).options(
-                joinedload(User.profile)
-            )
-            res = await session.execute(query)
-            db_user = res.scalars().first()
+            user = await self.get_user(user_data.tg_user_id)
+            if not user:
+                raise exceptions.UserNotFoundError('User does not exist')
 
-            if not db_user: return None
+            if user_data.profile:
+                if not user.profile:
+                    user.profile = Profile()
+                for field, value in user_data.profile.model_dump().items():
+                    try:
+                        setattr(user.profile, field, value)
+                    except AttributeError as e:
+                        logger.warning(f'AttributeError: {e}')
 
-            if user.profile:
-                db_user.profile = Profile(**user.profile.model_dump())
-            else:
-                db_user.profile = Profile(**user.profile.model_dump())
-
-            await session.commit()
-            return db_user
+            await self.session.flush()
+            return user
 
         except Exception as e:
-            await session.rollback()
-            raise e
+            logger.error(f'User updating: {e}')
+            await self.session.rollback()
+            raise
 
 
 
