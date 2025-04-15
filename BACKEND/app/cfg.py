@@ -6,10 +6,11 @@ class Config:
     smtp_address = config.get('smtp', 'address')
     smtp_port = config.getint('smtp', 'port')
 
-    postgres_base = config.get('PostgreSQL', 'base')
+    postgres_host = config.get('PostgreSQL', 'host')
     postgres_port = config.getint('PostgreSQL', 'port')
     postgres_user = config.get('PostgreSQL', 'user')
     postgres_password = config.get('PostgreSQL', 'pwd')
+    postgres_base = config.get('PostgreSQL', 'base')
 
     redis_host = config.get('REDIS', 'base')
     redis_port = config.getint('REDIS', 'port')
@@ -26,5 +27,8 @@ class Config:
 
     def get_redis_url(self):
         return f'redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/1'
+
+    def get_db_url(self):
+        return f'postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_base}'
 
 cfg = Config()
