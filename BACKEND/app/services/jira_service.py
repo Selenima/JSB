@@ -2,7 +2,7 @@ import asyncio
 from atlassian import Jira
 from typing import Optional
 
-from models.ticket import Ticket
+from utils import auto_logger
 from schemas.ticket import TicketCreate, TicketResponse
 from utils.jira_issue import JiraIssue
 
@@ -23,9 +23,11 @@ class JiraService:
         try:
             issue = self.jira.create_issue(fields=fields)
         except Exception as e:
-            return None #log
+            auto_logger.error(f'Issue creating: {e}')
+            return None
         else:
             issue = JiraIssue.from_dict(issue)
+            auto_logger.debug(f'Issue created: {issue.key}')
             ticket = TicketResponse.model_validate(issue.work_data(tg_user_id))
             return ticket
 
@@ -33,7 +35,7 @@ class JiraService:
         data = dict(
             summary=ticket.title,
             project=dict(key=self.project_key),
-            issuetype=dict(id=ticket.issue_type.service),
+            issuetype=dict(id=ticket.issue_type),
             description=ticket.description
         )
         return data

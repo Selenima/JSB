@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 
 class OTPData(BaseModel):
     email: EmailStr
-    code: str
+    #code: str
 
 
 class EmailResponse(BaseModel):

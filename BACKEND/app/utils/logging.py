@@ -1,11 +1,19 @@
-from loguru import logger
+import os
 import sys
-import json
-from pathlib import Path
+import inspect
+from datetime import datetime
+from loguru import logger
 
-def setup_logging(lvl: str = "DEBUG", rotation: str = "10 MB"):
+LOGS_DIR = 'logs'
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+def set_logger_filename(filename: str):
 
     logger.remove()
+    filename = filename if filename.endswith('.log') else filename + '.log'
+    full_log_path = os.path.join(LOGS_DIR, filename)
+    er_log_path = os.path.join(LOGS_DIR, 'error.log')
+
 
     console_fmt = (
         "<green>{time:YYYY-MM-DD HH:mm:ss}</green> |"
@@ -14,42 +22,45 @@ def setup_logging(lvl: str = "DEBUG", rotation: str = "10 MB"):
         "<level>{message}</level>"
     )
 
-    file_fmt = lambda record: json.dumps({
-        "time": record["time"].isoformat(),
-        "level": record["level"].name,
-        "module": record["module"],
-        "function": record["function"],
-        "message": record["message"],
-        "extra": record["extra"],
-    })
-
     logger.add(
         sys.stderr,
-        level=lvl,
+        level='DEBUG',
         format=console_fmt,
         colorize=True,
         backtrace=True,
         diagnose=True,
     )
 
-    logs_dir = Path("logs")
-    logs_dir.mkdir(exist_ok=True)
-
     logger.add(
-        logs_dir / "bot_{time}.log",
-        level="INFO",
-        format=file_fmt,
-        rotation=rotation,
-        compression="zip",
-        serialize=True
+        full_log_path,
+        level='DEBUG',
+        rotation='00:00',
+        colorize=False,
+        backtrace=True,
+        diagnose=True,
+        enqueue=True,
+        encoding='utf-8'
     )
-
     logger.add(
-        logs_dir / "errors.log",
-        level="ERROR",
-        format=file_fmt,
-        rotation="100 MB",
-        retention="30 days",
+        er_log_path,
+        level='ERROR',
+        rotation='00:00',
+        enqueue=True,
+        encoding='utf-8',
+        colorize=False,
+        backtrace=True,
+        diagnose=True,
     )
 
     return logger
+
+def set_logger_auto():
+
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    module_name = module.__name__ if module else 'unknown'
+
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    filename = f'app_{module_name}_{date_str}.log'
+    return set_logger_filename(filename)
+

@@ -1,6 +1,7 @@
 import aiosmtplib
 from email.message import EmailMessage
 from cfg import cfg
+from utils import auto_logger
 
 async def send_email(recipient_email: str, subject: str, body: str):
     """
@@ -31,7 +32,7 @@ async def send_email(recipient_email: str, subject: str, body: str):
         return {"status": "success", "message": "Email sent!"}
 
     except Exception as e:
-        print(str(e))
+        auto_logger.error(f'SMTP: {e}')
         return {"status": "failed", "message": str(e)}
 
 # import asyncio

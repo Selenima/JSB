@@ -57,6 +57,7 @@ class TicketCreate(BaseModel):
 
 
 class TicketResponse(BaseModel):
+    id: int
     tg_user_id: int
     jsd_id: str
     issue_type: str

@@ -6,7 +6,7 @@ from repositories import redis_repository
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.profile import User, Profile
-from utils.database import get_uow, UnitOfWork
+from utils.database import get_uow_dep, UnitOfWork
 from utils import set_logger_filename
 from repositories.user_repository import UserRepository
 
@@ -20,7 +20,7 @@ class GetUserProfileResponse(BaseModel):
     data: User
 
 @router.get('/from-db')
-async def get_user(tg_user_id: str, uow: UnitOfWork = Depends(get_uow)):
+async def get_user(tg_user_id: str, uow: UnitOfWork = Depends(get_uow_dep)):
     """
     Возвращает профиль пользователя из бд
     """
@@ -41,7 +41,7 @@ async def get_user(tg_user_id: str, uow: UnitOfWork = Depends(get_uow)):
     return GetUserProfileResponse(status='success', data=user)
 
 @router.put('/profile-update', status_code=204) #WT
-async def profile_update(request: User, uow: UnitOfWork = Depends(get_uow)):
+async def profile_update(request: User, uow: UnitOfWork = Depends(get_uow_dep)):
     """
     Обновляет пользовательский профиль.
     """

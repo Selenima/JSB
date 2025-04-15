@@ -7,7 +7,7 @@ class Ticket(Base):
     __tablename__ = 'tickets'
 
     id = Column(Integer, primary_key=True, index=True)
-    tg_user_id = Column(Integer, ForeignKey('tg_user_id.id')) # !
+    tg_user_id = Column(Integer, ForeignKey('users.tg_user_id')) # !
     jsd_id = Column(String, nullable=False)
     issue_type = Column(String, nullable=False)
     title = Column(String, nullable=False)
@@ -17,5 +17,5 @@ class Ticket(Base):
     comments = Column(JSON, default={})
     #created_at = Column(DateTime, default=datetime.now)
 
-    user = relationship('User', backref='tickets')
+    user = relationship('User', back_populates='tickets')
 

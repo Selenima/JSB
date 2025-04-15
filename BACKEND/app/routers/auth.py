@@ -1,12 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 
-from utils.database import get_db, AsyncSession
+from utils.database import get_uow_dep, UnitOfWork
 from services.auth_service import AuthService
 from repositories import redis_repository, user_repository
 from repositories.redis_repository import RedisRepository
 from schemas.auth_response import OTPData, EmailResponse
-from models.superset import AuthServiceSuperset
 from utils import auto_logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -24,12 +23,12 @@ class OTPRequest(BaseModel):
 
 
 @router.post('/send-code', status_code=status.HTTP_201_CREATED)
-async def send_code(request: EmailRequest, superset: AuthServiceSuperset = Depends(AuthServiceSuperset), session: AsyncSession = Depends(get_db)):
+async def send_code(request: EmailRequest, uow: UnitOfWork = Depends(get_uow_dep)):
     """
     Отправка кода подтверждения.
     """
     auto_logger.info(f'{request.model_dump()}')
-    service = AuthService(superset.redis_repository, user_repository, session)
+    service = AuthService(uow)
     code = await service.send_otp(str(request.email), request.tg_user_id)
 
     if not code:
@@ -39,7 +38,7 @@ async def send_code(request: EmailRequest, superset: AuthServiceSuperset = Depen
     return response
 
 @router.post('/verify-code', status_code=status.HTTP_201_CREATED)
-async def verify_code(request: OTPRequest, session: AsyncSession = Depends(get_db)):
+async def verify_code(request: OTPRequest, uow: UnitOfWork = Depends(get_uow_dep)):
     """
     Проверка кода подтверждения.
     """
@@ -47,10 +46,10 @@ async def verify_code(request: OTPRequest, session: AsyncSession = Depends(get_d
 
     auto_logger.debug(f"Verifying code: {request.model_dump()}")
 
-    auth_service = AuthService(redis_repository, user_repository, session)
+    auth_service = AuthService(uow)
 
 
-    is_valid = await auth_service.redis_rep.verify_otp(request.tg_user_id, str(request.email), request.code)
+    is_valid = await uow.redis_repository.verify_otp(request.tg_user_id, str(request.email), request.code)
 
     auto_logger.debug(f"Code processed: {is_valid}")
 
@@ -64,5 +63,5 @@ async def verify_code(request: OTPRequest, session: AsyncSession = Depends(get_d
     if not exec_stat:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot add user')
 
-    session_key = await redis_repository.create_session(request.tg_user_id, str(request.email)) ####
+    session_key = await uow.redis_repository.create_session(request.tg_user_id, str(request.email)) ####
     return {'status': 'success', 'data': dict(session_key=session_key)}

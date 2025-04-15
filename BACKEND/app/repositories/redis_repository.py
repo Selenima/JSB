@@ -13,7 +13,8 @@ class RedisRepository:
         self.redis = aioredis.from_url(redis_url, decode_responses=True)
 
     def hash_256(self, value):
-        return hashlib.sha256(str(value).encode()).hexdigest()
+        salt = '231l512DFS'
+        return hashlib.sha256(f'{str(value)}{salt}'.encode()).hexdigest()
 
     async def set_otp(self, tg_user_id: int, email: str, otp_code: str, expire_seconds: int = 300):
         """

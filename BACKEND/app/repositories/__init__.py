@@ -7,7 +7,7 @@
 from cfg import cfg
 
 from .redis_repository import RedisRepository
+from .user_repository import UserRepository
+from .ticket_repository import TicketRepository
 
-
-redis_repository = RedisRepository(cfg) # include
-
+__all__ = ['RedisRepository', 'UserRepository', 'TicketRepository']

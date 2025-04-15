@@ -1,3 +1,5 @@
-from .logging import setup_logging
+from .logging import *
 
-logger = setup_logging()
+auto_logger = set_logger_auto()
+
+__all__ = ['auto_logger', 'set_logger_filename']

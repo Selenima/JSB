@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, ForeignKey, func
 from sqlalchemy.orm import relationship
 from models.database import Base
+from models.ticket import Ticket
 
 class User(Base):
     __tablename__ = 'users'
@@ -13,13 +14,13 @@ class User(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     profile = relationship('Profile', back_populates="user", uselist=False)
-    ticket = None
+    tickets = relationship('Ticket', back_populates='user', uselist=True)
 
 class Profile(Base):
     __tablename__ = 'profiles'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    tg_user_id = Column(ForeignKey('users.tg_user_id'), nullable=False)
+    tg_user_id = Column(Integer, ForeignKey('users.tg_user_id'), nullable=False)
     fullname = Column(String, nullable=True)
     company = Column(String, nullable=True)
     position = Column(String, nullable=True)

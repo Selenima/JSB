@@ -35,15 +35,16 @@
 import random
 import string
 from utils.smtp_client import send_email
-from utils.database import get_db
+from utils.database import get_uow, UnitOfWork
+from fastapi import Depends
 from repositories.redis_repository import RedisRepository
 from repositories.user_repository import UserRepository
+from utils import set_logger_filename, auto_logger
 
+class AuthService:
 
-class AuthService(UserRepository):
-
-    def __init__(self, redis_rep: RedisRepository): #!
-        self.redis_rep = redis_rep
+    def __init__(self, uow: UnitOfWork = Depends(get_uow)): #!
+        self.uow = uow
 
     def generate_otp(self, length: int = 6) -> str:
         """
@@ -60,7 +61,7 @@ class AuthService(UserRepository):
         :param tg_user_id:
         :return:
         """
-
+        logger = auto_logger
         otp_code = self.generate_otp()
         subject = "Аутентификация в чат-боте"
         message = f'''Здравствуйте!
@@ -68,24 +69,26 @@ class AuthService(UserRepository):
         Ваш код подтверждения {otp_code}
         Код действует 5 минут. Никому его не сообщайте.'''
 
-        otp = None
 
         try:
-            otp = await self.redis_rep.set_otp(tg_user_id, otp_code)
+            otp = await self.uow.redis_repository.set_otp(tg_user_id, email, otp_code)
             await send_email(email, subject, message)
+
+            n, d = email.split('@')
+            email = f'{n[:2] + '***' + n[-2:]}@{d}' if len(n) > 4 else f"***@{d}"
+            logger.info(f'OTP sending to {email}')
+            return otp
         except Exception as e:
-            pass #LOG
-        finally:
-            return otp if otp else None
+            logger.error(f'OTP sending: {e}')
+            return None
 
     async def add_user(self, email: str, tg_user_id: int):
         """
         Добавляет минимальную строку в таблицу users
         """
-        async with get_db() as session:
-            try:
-                await self.create_user(session, email, tg_user_id)
-                return True
-            except Exception as e:
-                return False
+
+
+        res = await self.uow.user_repository.create_user(email, tg_user_id)
+        return res is not None
+
 
