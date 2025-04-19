@@ -8,7 +8,7 @@ from utils import set_logger_filename
 
 
 class TicketService:
-    def __init__(self, jira_service: JiraService, uow: UnitOfWork = Depends(get_uow)):
+    def __init__(self, jira_service: JiraService, uow: UnitOfWork = UnitOfWork(get_uow)):
         self.uow = uow
         self.jira_service = jira_service
         self.logger = set_logger_filename('TICKET_SERVICE')
@@ -65,7 +65,6 @@ class TicketService:
             db_ticket = await self.uow.ticket_repository.create(ticket)
             if not db_ticket:
                 raise ValueError("Failed to save ticket to database")
-
             return TicketResponse.model_validate(db_ticket)
         except Exception as e:
             self.logger.error(f"Database save failed: {e}")

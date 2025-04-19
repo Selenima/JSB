@@ -100,7 +100,7 @@ class RedisRepository:
         ticket_key = self.hash_256(ticket.jsd_id)
         data = json.loads(session_data)
 
-        data['data'][ticket_key] = ticket.model_dump()
+        data['data'][ticket_key] = json.loads(ticket.model_dump_json())
 
         ttl = await self.redis.ttl(session_key)
 

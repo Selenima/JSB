@@ -43,7 +43,7 @@ from utils import set_logger_filename, auto_logger
 
 class AuthService:
 
-    def __init__(self, uow: UnitOfWork = Depends(get_uow)): #!
+    def __init__(self, uow: UnitOfWork = Depends(get_uow)): #!Контекстный менеджер не работает
         self.uow = uow
 
     def generate_otp(self, length: int = 6) -> str:

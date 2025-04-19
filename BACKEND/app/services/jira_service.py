@@ -22,13 +22,27 @@ class JiraService:
     def _create_issue_sync(self, fields: dict, tg_user_id: int) -> Optional[TicketResponse]:
         try:
             issue = self.jira.create_issue(fields=fields)
+
         except Exception as e:
             auto_logger.error(f'Issue creating: {e}')
             return None
         else:
+            issue = self.jira.issue(issue.get('key'))
+            auto_logger.debug(issue)
             issue = JiraIssue.from_dict(issue)
             auto_logger.debug(f'Issue created: {issue.key}')
-            ticket = TicketResponse.model_validate(issue.work_data(tg_user_id))
+            ticket = TicketResponse(
+                id=None,
+                tg_user_id=tg_user_id,
+                jsd_id=issue.key,
+                issue_type=int(issue.fields.issue_type.id),
+                title=issue.fields.summary,
+                description=issue.fields.description,
+                status=int(issue.fields.status.id),
+                service=0, #!
+                comments=issue.fields.comment.comments
+            )
+
             return ticket
 
     def create_data(self, ticket: TicketCreate) -> dict:

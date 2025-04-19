@@ -9,12 +9,12 @@ class Ticket(Base):
     id = Column(Integer, primary_key=True, index=True)
     tg_user_id = Column(Integer, ForeignKey('users.tg_user_id')) # !
     jsd_id = Column(String, nullable=False)
-    issue_type = Column(String, nullable=False)
+    issue_type = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
     status = Column(Integer, default=0)
     service = Column(Integer, default=0)
-    comments = Column(JSON, default={})
+    comments = Column(JSON, default=[])
     #created_at = Column(DateTime, default=datetime.now)
 
     user = relationship('User', back_populates='tickets')

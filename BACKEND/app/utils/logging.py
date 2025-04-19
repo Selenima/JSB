@@ -16,7 +16,7 @@ def set_logger_filename(filename: str):
 
 
     console_fmt = (
-        "<green>{time:YYYY-MM-DD HH:mm:ss}</green> |"
+        "<green>{time:YYYY-MM-DD}</green> |"
         "<level>{level: <8}</level> |"
         "<cyan>{module}</cyan>:<cyan>{function}</cyan> - "
         "<level>{message}</level>"

@@ -554,14 +554,17 @@ class JiraIssue:
         )
 
     def work_data(cls, tg_user_id: int):
+        print(cls.fields.issue_type.id, cls.fields.issue_type, sep='\n')
+        issue_type= cls.fields.issue_type.id if cls.fields.issue_type.id is not None else 0
         data = dict(
             tg_user_id=tg_user_id,
             jsd_id=cls.key,
-            issue_type=cls.fields.issue_type.id,
+            issue_type=issue_type,
             title=cls.fields.summary,
             description=cls.fields.description,
             status=cls.fields.status.id,
-            service=cls.fields.service_product.id,
+            service=cls.fields.service_product.id if cls.fields.service_product else 0,
             comments=cls.fields.comment.comments
         )
+        print(data.get('issue_type'))
         return data

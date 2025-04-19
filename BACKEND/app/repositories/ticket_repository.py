@@ -29,8 +29,9 @@ class TicketRepository:
                 issue_type=ticket_data.issue_type,
                 title=ticket_data.title,
                 description=ticket_data.description,
-                status=int(ticket_data.status),
+                status=int(ticket_data.status.id),
                 service=ticket_data.service,
+                comments=ticket_data.comments,
             )
         except:
             self.logger.exception('Ticket object creation failed. Incorrect ticket data!!!!')
