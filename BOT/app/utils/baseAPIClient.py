@@ -1,5 +1,7 @@
 import aiohttp
 from typing import Optional, Dict, Any
+from utils import auto_logger
+
 
 class BaseAPIClient:
 
@@ -9,11 +11,12 @@ class BaseAPIClient:
 
     async def _request(self, method: str, endpoint: str, **kwargs) -> Optional[Dict[str, Any]]:
         url = f'{self.base_url}{endpoint.lstrip("/")}'
+        auto_logger.debug(f'{method} -> {url} :: {kwargs}')
         async with aiohttp.ClientSession() as session:
             async with session.request(method, url, **kwargs) as response:
-                if response.status == 200:
-                    return await response.json()
-                return None
+                auto_logger.debug(f'{method} <- {url} :: {response.status} {await response.text()}')
+                return await response.json() if response.status > 199 and response.status < 299 else None
+
 
     async def get(self, endpoint: str, params: Optional[Dict] = None) -> Optional[Dict]:
         return await self._request('GET', endpoint, params=params)

@@ -22,7 +22,7 @@ dp = Dispatcher(storage=storage)
 
 redis_rep = RedisRepository(cfg.get_redis_url())
 auth_service = AuthService(redis_rep, cfg.backend_url, 'v1')
-ticket_service = TicketService(redis_rep, cfg.backend_url)
+ticket_service = TicketService(redis_rep, cfg.backend_url, 'v1')
 
 register_handlers(dp, auth_service, redis_rep, ticket_service)
 

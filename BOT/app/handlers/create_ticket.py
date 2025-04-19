@@ -9,9 +9,8 @@ from models.ticket import Ticket
 from keyboards.ticket import get_create_ticket_keyboard, get_create_ticket_text
 from repositories.redis_repository import RedisRepository
 from services.ticket_service import TicketService
-from middlewares.auth_middleware import AuthMiddleware
 
-from cfg import Config
+from cfg import cfg
 
 router = Router()
 
@@ -23,10 +22,10 @@ class TicketState(StatesGroup):
 @router.message(Command("create_ticket"))
 async def create_ticket(message: Message, state: FSMContext):
     data = await state.get_data()
-    new_ticket = Ticket(tg_user_id=message.from_user.id, status=0)
+    new_ticket = Ticket(tg_user_id=message.from_user.id)
 
     txt = get_create_ticket_text(new_ticket)
-    if data['bad_try']:
+    if data.get('bad_try'):
         txt = 'Для отправки заявки поля "Тема" и "Описание" должны быть заполнены.\n' + txt
     msg = await message.answer(txt, reply_markup=get_create_ticket_keyboard(new_ticket))
 
@@ -112,7 +111,7 @@ async def cancelcall(message: Message, state: FSMContext):
 
     data = await state.get_data()
 
-    await message.bot.delete_messages(message.chat.id, [message.message_id, data['temp_message_id']] if data['temp_message_id'] else [message.message_id,])
+    await message.bot.delete_messages(message.chat.id, [message.message_id, data.get('temp_message_id')] if data.get('temp_message_id') else [message.message_id,])
 
     await message.answer("Создание заявки отмнено.")
     await state.clear()
@@ -121,7 +120,12 @@ async def cancelcall(message: Message, state: FSMContext):
 async def submit_ticket(message: Message, state: FSMContext, ticket_service: TicketService = F.ticket_service): #, redis_repository: RedisRepository = F.redis_repository
     data = await state.get_data()
     ticket: Ticket = data['ticket']
-
+    ticket = Ticket(
+        tg_user_id=message.from_user.id,
+        issue_type='10201',
+        title=ticket.title,
+        description=ticket.description
+    )
     if not ticket.title:
         await state.update_data(bad_try=True)
         return
@@ -131,8 +135,13 @@ async def submit_ticket(message: Message, state: FSMContext, ticket_service: Tic
         return
 
     ticket = await ticket_service.create_ticket(ticket)
+    if not ticket:
+        await message.answer('Не удалось создать заявку.')
+        return
+    await message.bot.delete_messages(message.chat.id, [message.message_id, data['menu_message_id'], data.get('temp_message_id')])
 
-    await message.bot.delete_message(message.chat.id, message.message_id)
+    await message.answer(get_create_ticket_text(ticket), reply_markup=get_create_ticket_keyboard(ticket))
+
     #await state.update_data(ticket=ticket)
     # Открываем пользьвателю мейн меню или данную задачу в режим отслеживания (меню отслеживания изменений по заявке).
 

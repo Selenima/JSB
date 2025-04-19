@@ -96,7 +96,8 @@ async def start(message: types.Message, state: FSMContext, auth_service: AuthSer
 
     else:
         # Есть активная сессия — уже авторизован
-        await state.set_state(AuthStates.success)
+        await state.clear()
+        await message.answer('Вы уже авторизовны и можете пользоваться ботом.')
 
 
 # @router.message(AuthStates.email)

@@ -12,7 +12,8 @@ class RedisRepository:
         self.redis = aioredis.from_url(redis_url)
 
     def hash_256(self, value):
-        return hashlib.sha256(str(value).encode()).hexdigest()
+        salt = '231l512DFS'
+        return hashlib.sha256(f'{str(value)}{salt}'.encode()).hexdigest()
 
     async def verify_otp(self, tg_user_id: int, email: str, otp_code: str):
         """
@@ -59,6 +60,7 @@ class RedisRepository:
         """
         session_key = self.hash_256(f'{tg_user_id}')
         session_data = await self.redis.get(session_key)
+
         return json.loads(session_data) if session_data else None
 
     async def add_ticket(self, tg_user_id: int, ticket: Ticket):
@@ -69,6 +71,6 @@ class RedisRepository:
         :return:
         """
 
-        user_key = self.hash_256(tg_user_id)
+        user_key = self.hash_256(f'{tg_user_id}')
 
         await self.redis.set(user_key, ticket.model_dump(), ex=2_592_000)

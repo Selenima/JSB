@@ -8,7 +8,7 @@ def add_to_cache(user_id: int):
 def check_cache(user_id: int) -> bool:
     return user_id in auth_cache
 
-starter_cache = TTLCache(maxsize=100, ttl=600)
+starter_cache = TTLCache(maxsize=100, ttl=60)
 
 def starter(user_id: int):
     starter_cache[user_id] = True

@@ -1,12 +1,9 @@
-import json
-import secrets
-import aiohttp
 from pydantic import EmailStr
 
 from repositories.redis_repository import RedisRepository
 from models.user import User
 from utils.baseAPIClient import BaseAPIClient
-
+from utils import auto_logger
 
 class AuthService(BaseAPIClient):
     '''Сервис аутентификации на уровне бота.
@@ -29,7 +26,7 @@ class AuthService(BaseAPIClient):
 
         data = dict(email=email, tg_user_id=tg_user_id)
         response = await self.post('auth/send-code', json=data)
-        return response is not None
+        return response# is not None
 
     async def verify_code_http(self, tg_user_id: int, code: str, email: EmailStr):
         """
@@ -40,6 +37,8 @@ class AuthService(BaseAPIClient):
         """
         data = {'tg_user_id': tg_user_id, 'code': code, 'email': email}
         response = await self.post('auth/verify-code', json=data)
+        if response is None:
+            return None
         data = response.get('data')
         session_key = data.get('session_key') if data else None
         return session_key
@@ -52,7 +51,7 @@ class AuthService(BaseAPIClient):
         :return: Ключ сессии или None
         """
 
-        is_valid = await self.redis_rep.verify_otp(tg_user_id, code)
+        is_valid = await self.redis_rep.verify_otp(tg_user_id, str(email), code)
         if not is_valid:
             return False
 
@@ -66,12 +65,12 @@ class AuthService(BaseAPIClient):
         :param email:
         :return: Сессию или Пользователя
         """
-        response = await self.get('/users/from-db', params=dict(tg_user_id=tg_user_id))
+        response = await self.get('/users/from-db', params=dict(tg_user_id=str(tg_user_id)))
 
         if not response:
             return None
 
-        user = User(**response)
-        session = await self.redis_rep.get_session(user.tg_user_id, user.email)
+        user = User(**response.get('data'))
 
-        return session if session else user
+        session = await self.redis_rep.get_session(user.tg_user_id)
+        return session if session is not None else user

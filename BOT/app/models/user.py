@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 class Profile(BaseModel):
     full_name: str | None = None
@@ -7,8 +8,12 @@ class Profile(BaseModel):
     contacts: list | None = None
 
 class User(BaseModel):
-    tuser_id: int
+    id: int
+    tg_user_id: int
     email: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
     profile: Profile | None = None
 
     class Config:

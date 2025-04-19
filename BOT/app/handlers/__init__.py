@@ -15,8 +15,8 @@ def register_handlers(dp: Dispatcher, auth_service, redis_repository, ticket_ser
 
     routers = [start_router, create_ticket_router]
 
-    for router in routers:
-        router.message.middleware(AuthMiddleware())
-        router.callback_query.middleware(AuthMiddleware())
+    #start_router.message.middleware(AuthMiddleware())
+    #start_router.callback_query.middleware(AuthMiddleware())
 
     dp.include_routers(*routers)
+

@@ -1,12 +1,12 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from models.ticket import Ticket, StatusType
 
 
 def get_create_ticket_keyboard(ticket: Ticket):
 
     keyboard = [
-        KeyboardButton(text=f'Тема: {ticket.title if ticket.title else ""}'),
-        KeyboardButton(text=f'Описание: {ticket.description if ticket.description else ""}'),
+        [KeyboardButton(text=f'Тема: {ticket.title if ticket.title else ""}')],
+        [KeyboardButton(text=f'Описание: {ticket.description if ticket.description else ""}')],
         [
             KeyboardButton(text='Отмена'),
             KeyboardButton(text='Отправить')
@@ -17,17 +17,17 @@ def get_create_ticket_keyboard(ticket: Ticket):
     return keyboard
 
 def get_create_ticket_text(ticket: Ticket):
+
     text = f"""
-{ticket.status.messages}
+    {ticket.status.message}
+{f'[{ticket.jsd_id}]' if ticket.jsd_id else ''}
+<b>Тема:</b> {ticket.title if ticket.title else 'Не указана'}
 
-{f'[{ticket.ticket_id}]' if ticket.ticket_id else ''}
-Тема: {ticket.title if ticket.title else 'Не указана'}
+<b>Тип запроса:</b> {'Обслуживание' if ticket.issue_type else 'Обслуживание'} 
+<b>Статус:</b> {ticket.status.value}
 
-Тип запроса: {'Обслуживание' if ticket.issue_type else ''}
-Статус: {ticket.status}
+<b>Описание:</b> {ticket.description if ticket.description else 'Не указано'}
 
-Описание: {ticket.description if ticket.description else 'Не указано'}
-
-    Чтобы оставить комментарий нажмите кнопку...
+    {'Чтобы оставить комментарий нажмите кнопку...' if ticket.jsd_id else ''}
 """
     return text
