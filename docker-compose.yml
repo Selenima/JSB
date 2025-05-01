@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  tg_bot:
+    build:
+      context: .
+      dockerfile: tg_bot/Dockerfile
+    container_name: tg_bot
+    depends_on:
+      - redis
+      - backend_api
+    environment:
+      - REDIS_URL=redis://:123456789@redis:6379/1
+      - BACKEND_API_URL=http://backend:8000
+    volumes:
+      - ./config.ini:/app/config.ini
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend_api/Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DB_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:123456789@redis:6379/1
+    volumes:
+      - ./config.ini:/app/config.ini
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: mdm
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    command: redis-server --requirepass 123456789
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - '8001:8001'
+    volumes:
+      - redisinsight_data:/db
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  redisinsight_data:
+
+networks:
+  app_network:
+    driver: bridge
